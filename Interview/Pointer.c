@@ -26,9 +26,42 @@ void pointer_array(){
     }
     printf("\n----------------------\n");
 }
+
+// Con trỏ hàm
+void Pointer_of_func(int a)
+{
+    printf("\nIII. Pointer of Function!\n");
+    printf("----------------------\n");
+    printf("Point of function: %d\n", a);
+    printf("----------------------\n");
+}
+
+// Con trỏ tới con trỏ
+void Pointer_to_pointer()
+{
+    int a = 10;
+    int *p = &a;
+    int **pinp = &p;
+    printf("\nIV. Pointer of Function!\n");
+    printf("%p\n", &a);
+    printf("%p\n", &p);
+    printf("----------------------\n");
+}
+
+
 int main()
 {
     intro_pointer();
+
     pointer_array();
+
+    void (*Pointer_func)(int) = Pointer_of_func;
+    // printf("Address: %p, Value: %p", &Pointer_of_func, (int*)Pointer_func);
+    printf("Address: %p\n", &Pointer_of_func);
+    printf("Address: %p\n", (void*)Pointer_func);
+    Pointer_func(4);
+    
+    Pointer_to_pointer();
     return 0;
 }
+
