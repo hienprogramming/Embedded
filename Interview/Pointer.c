@@ -1,5 +1,5 @@
 #include<stdio.h>
-
+#include <stdlib.h> // Thêm thư viện này để sử dụng malloc và free
 // Giới thiệu về con trỏ
 void intro_pointer(){
     int a = 10;
@@ -42,13 +42,68 @@ void Pointer_to_pointer()
     int a = 10;
     int *p = &a;
     int **pinp = &p;
-    printf("\nIV. Pointer of Function!\n");
+    printf("\nIV. Pointer to pointer!\n");
     printf("%p\n", &a);
     printf("%p\n", &p);
     printf("----------------------\n");
 }
 
+// Con trỏ và cấu trúc
+void Pointer_to_struct()
+{
+    typedef struct Pointer
+    {
+        int x, y;
+    }Point;
+    Point p = {10, 20};
+    Point *p_prt = &p;
+    int c = 10;
+    int *p_test = &c;
+    printf("Address c: %p, value = %d", &p_test, *p_test);
+    printf("\nV. Pointer and Struct!\n");
+    printf("Address p0: %p, value = %d\n", &(p_prt->x), p_prt->x);
+    printf("Address p0: %p, value = %d\n", (void*)&(p_prt->x), p_prt->x);
+    printf("Address p1: %p, value = %d\n", &(p_prt->y), p_prt->y);
+    printf("Address p1: %p, value = %d\n", (void*)&(p_prt->y), p_prt->y);
+    printf("----------------------\n");
 
+}
+
+// Con trỏ động và cấp phát bộ nhớ động
+/*Cấp phát và giải phóng bộ nhớ: Sử dụng malloc, calloc, realloc, và free.*/
+// Con trỏ động và cấp phát bộ nhớ động
+void Allocation_memory()
+{
+    printf("\nVI. Con trỏ động và cấp phát bộ nhớ động!\n");
+    int *p = (int*)malloc(sizeof(int) * 5); // Cấp phát bộ nhớ cho mảng 5 phần tử
+    if (p == NULL) {
+        printf("Memory allocation failed\n");
+        return;
+    } else {
+        printf("Memory allocation is successful. Address: %p\n", (void*)p);
+    }
+
+    // Gán giá trị cho mảng động
+    for (int i = 0; i < 5; i++) {
+        p[i] = i + 1;
+    }
+
+    // In ra các giá trị trong mảng
+    for (int i = 0; i < 5; i++) {
+        printf("p[%d] = %p, value = %d\n", i, &p[i], p[i]);
+    }
+
+    // Giải phóng bộ nhớ
+    free(p);
+    p = NULL; // Đặt con trỏ về NULL sau khi giải phóng
+    // Kiểm tra xem p có phải là NULL hay không
+    if (p == NULL) {
+        printf("Memory has been freed successfully and pointer is set to NULL\n");
+    } else {
+        printf("Failed to free memory\n");
+    }
+    printf("----------------------\n");
+}
 int main()
 {
     intro_pointer();
@@ -62,6 +117,10 @@ int main()
     Pointer_func(4);
     
     Pointer_to_pointer();
+
+    Pointer_to_struct();
+
+    Allocation_memory();
     return 0;
 }
 

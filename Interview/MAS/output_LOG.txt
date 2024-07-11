@@ -1,0 +1,20 @@
+Event ID: 1
+Timestamp: Fri Jul 12 00:20:49 2024
+  Description: This is a test description.
+Data: Engine start
+------------------------
+Event ID: 2
+Timestamp: Fri Jul 12 00:20:49 2024
+  Description: This is a test description.
+Data: Speed: 60 km/h
+------------------------
+Event ID: 3
+Timestamp: Fri Jul 12 00:20:49 2024
+  Description: This is a test description.
+Data: Brake applied
+------------------------
+Event ID: 4
+Timestamp: Fri Jul 12 00:20:49 2024
+  Description: This is a test description.
+Data: Accident detected: Front collision
+------------------------
