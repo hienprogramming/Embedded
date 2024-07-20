@@ -1,40 +1,29 @@
-
-
-// {
-//     "version": "0.2.0",
-//     "configurations": [
-//         {
-//             "name": "Python Debugger: Current File",
-//             "type": "python",
-//             "request": "launch",
-//             "program": "${file}",
-//             "console": "integratedTerminal",
-//             "args": [],
-//             "env": {},
-//             "envFile": "${workspaceFolder}/.env",
-//             "python": "python",
-//             "internalConsoleOptions": "neverOpen",
-//             "postDebugTask": "Run PowerShell Script to Log Output"
-//         }
-//     ]
-// }
-
-
 {
-    "version": "0.2.0",
     "configurations": [
-        {
-            "name": "Python Debugger: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": [],
-            "env": {},
-            "envFile": "${workspaceFolder}/.env",
-            "python": "python",
-            "internalConsoleOptions": "neverOpen",
-            "postDebugTask": "Run PowerShell Script to Log Output"
-        }
+    {
+        "name": "(gdb) Bash on Windows Attach",
+        "type": "cppdbg",
+        "request": "attach",
+        "program": "D:/C-development/hexfile.exe",
+        "processId": "${command:pickRemoteProcess}",
+        "pipeTransport": {
+            "debuggerPath": "D:/C-development",
+            "pipeProgram": "${env:windir}\\system32\\bash.exe",
+            "pipeArgs": ["-c"],
+            "pipeCwd": ""
+        },
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set Disassembly Flavor to Intel",
+                "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ]
+    }
     ]
 }
