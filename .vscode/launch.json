@@ -1,29 +1,23 @@
 {
-    "configurations": [
-    {
-        "name": "(gdb) Bash on Windows Attach",
-        "type": "cppdbg",
-        "request": "attach",
-        "program": "D:/C-development/hexfile.exe",
-        "processId": "${command:pickRemoteProcess}",
-        "pipeTransport": {
-            "debuggerPath": "D:/C-development",
-            "pipeProgram": "${env:windir}\\system32\\bash.exe",
-            "pipeArgs": ["-c"],
-            "pipeCwd": ""
-        },
-        "setupCommands": [
-            {
-                "description": "Enable pretty-printing for gdb",
-                "text": "-enable-pretty-printing",
-                "ignoreFailures": true
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "g++", // Tên task
+            "type": "shell", // Kiểu task
+            "command": "g++", // Lệnh biên dịch
+            "args": [
+                "${file}", // File nguồn
+                "-g", // Thêm thông tin debug
+                "-o", // Tên file thực thi
+                "D:/C-development/TestandDebug/Pointer_and_Resgister.exe"
+            ],
+            "group": {
+                "kind": "build", // Loại task (build)
+                "isDefault": true // Task mặc định
             },
-            {
-                "description": "Set Disassembly Flavor to Intel",
-                "text": "-gdb-set disassembly-flavor intel",
-                "ignoreFailures": true
-            }
-        ]
-    }
+            "problemMatcher": [
+                "$gcc" // Sử dụng problem matcher cho g++
+            ]
+        }
     ]
 }
