@@ -1,29 +1,58 @@
-#include <stdio.h>
-typedef unsigned char uint8_t;
-
-// Hàm đọc giá trị từ register tại địa chỉ cho trước
-int read_register(uintptr_t reg_addr) {
+#include<stdio.h>
+// Function for read value of register
+int read_value_reg(uintptr_t addr)
+{
     int value;
-    // Đọc giá trị từ địa chỉ register
-    value = *(int *)reg_addr;
+    value = *(uintptr_t*) addr;
     return value;
 }
 
-// Hàm ghi giá trị vào register tại địa chỉ cho trước
-void write_register(uintptr_t reg_addr, int value) {
-    // Ghi giá trị vào địa chỉ register
-    *(int *)reg_addr = value;
+void write_value_reg(uintptr_t addr, int value)
+{
+    *(uintptr_t*) addr = value;
 }
-
-int main() {
-    uintptr_t reg_addr = 0x1000; // Địa chỉ thanh ghi có thể thay đổi
-
-    // Đọc giá trị từ register
-    int value = read_register(reg_addr);
-    printf("Giá trị của register: %d\n", value);
-
-    // Ghi giá trị vào register
-    write_register(reg_addr, 10);
-
+int main()
+{
+    // Function for read value of register
+    read_value_reg(0x1000);
+    // Function for write value of register
+    write_value_reg(0x1010, 100);
     return 0;
 }
+
+
+
+
+// #include <stdint.h>
+// #include <stdio.h>
+
+// // Giả định rằng chúng ta có một vi điều khiển với các thanh ghi
+// #define REG_CONTROL (*(volatile uint32_t*)0x40000000)
+// #define REG_STATUS  (*(volatile uint32_t*)0x40000004)
+
+// // Bitmask cho các bit trong thanh ghi điều khiển
+// #define CONTROL_ENABLE (1 << 0)
+// #define CONTROL_RESET  (1 << 1)
+
+// void enable_device() {
+//     REG_CONTROL |= CONTROL_ENABLE; // Bật thiết bị
+// }
+
+// void reset_device() {
+//     REG_CONTROL |= CONTROL_RESET; // Đặt lại thiết bị
+//     REG_CONTROL &= ~CONTROL_RESET; // Xóa bit đặt lại
+// }
+
+// uint32_t read_status() {
+//     return REG_STATUS; // Đọc trạng thái
+// }
+
+// int main() {
+//     enable_device();
+//     reset_device();
+
+//     uint32_t status = read_status();
+//     printf("Device Status: %u\n", status);
+
+//     return 0;
+// }
