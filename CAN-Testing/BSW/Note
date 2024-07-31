@@ -1,0 +1,22 @@
+Nen gioi thieu tren dong cua chip: eps32, stm (thanh ghi doc lai ex: chop led, cac buoc lam chop led), xai Keic compiler, [CubeMx]
+volatile: data type
+register: data type
+Trình biên dịch là gì, có những loại trình biên dịch nào
+bo nho (flash, rom), ram, vung nho stack, heap. Change size vung nho steak, heap cho con chip (khái niệm, solution)
+Ex: vùng nhớ flash thì làm sao 
+
+startup code: khi reset chip thi thuc thi startup code dau tien -> main....
+data structure: stack làm gì, queue
+- stack: last in fist out (lifo) + ứng dụng cho vi điều khiển
+- queue: first in, first out (fifo) + ứng dụng (trong UART)
+
+- static & global variable
+- memcpy function
+OS: không bk -> chưa xài
+
+
+ex: giai thừa, Dich bit, thanh ghi, bit banding (skill to save memory like struct)
+Con tro tham chieu, tham tri, funtion pointer, (code mau)
+
+
+Hỏi về project họ nên gì để họ thích thú, làm gì, bala,....
