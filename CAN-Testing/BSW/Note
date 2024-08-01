@@ -11,12 +11,16 @@ data structure: stack làm gì, queue
 - queue: first in, first out (fifo) + ứng dụng (trong UART)
 
 - static & global variable
-- memcpy function
+- memcpy, strncpy function
+- function pointer
+
+- struct chứa con trỏ
 OS: không bk -> chưa xài
+- OS, RTOS
 
 
-ex: giai thừa, Dich bit, thanh ghi, bit banding (skill to save memory like struct)
+ex: ep kieu, giai thừa, Dich bit, thanh ghi, bit banding (skill to save memory like struct)
 Con tro tham chieu, tham tri, funtion pointer, (code mau)
 
-
+D:\C-development\Embedded-Coding\MAS\MAS.c
 Hỏi về project họ nên gì để họ thích thú, làm gì, bala,....
