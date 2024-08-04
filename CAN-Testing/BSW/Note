@@ -13,9 +13,7 @@ data structure: stack làm gì, queue
 - static & global variable
 - memcpy, strncpy function
 - function pointer
-
 - struct chứa con trỏ
-OS: không bk -> chưa xài
 - OS, RTOS
 
 
@@ -24,3 +22,8 @@ Con tro tham chieu, tham tri, funtion pointer, (code mau)
 
 D:\C-development\Embedded-Coding\MAS\MAS.c
 Hỏi về project họ nên gì để họ thích thú, làm gì, bala,....
+
+
+Thuật toán Garbage Collection
+Thuật toán PID
+Cây nhị phân (Binary Tree) và Cây tìm kiếm nhị phân (Binary Search Tree): Dùng cho lưu trữ dữ liệu có cấu trúc.
