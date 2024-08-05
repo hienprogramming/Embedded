@@ -23,3 +23,27 @@ int main()
     }
     free(arr);
 }
+
+
+// #include<stdio.h>
+// #include<string.h>
+// int main(){
+//     int n = 4;
+//     int *arr = (int *)malloc(n * sizeof(int));
+//     if(arr == NULL)
+//     {
+//         return -1;
+//     }
+//     else{
+//         printf("Nhap mang\n");
+//         for (int i = 0; i < sizeof(n); i++){
+//             scanf("%d", &arr[i]);
+//         }
+
+//         printf("In ra man hinh\n");
+//         for (int i = 0; i < sizeof(n); i++){
+//             printf("arr[%d] = %d\d", i, arr[i]);
+//         }        
+//     }
+//     free(arr);
+// }
