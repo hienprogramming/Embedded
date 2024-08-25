@@ -354,6 +354,3 @@ int main()
     free(state_Airbag);
     free(rotor_torque);
 }
-
-
-
