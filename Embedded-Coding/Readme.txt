@@ -1,3 +1,4 @@
 1. Run file c via gcc: gcc -o Pointer Pointer.c ; .\Pointer.exe
-2. If any issue regarding to prinft is not like your format: chcp 65001 
-3. Debug with: C/C++ (gdb) Launch
+2. Run file c with folder is configed: gcc -o [your folder] Giaithua.c ; .\Giaithua.exe
+3. If any issue regarding to prinft is not like your format: chcp 65001 
+4. Debug with: C/C++ (gdb) Launch
