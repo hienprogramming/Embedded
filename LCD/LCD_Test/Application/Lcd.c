@@ -3,8 +3,11 @@
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_rcc.h"
 #include "Lcd.h"
+#include "stdio.h"
+#include "stdbool.h"
+#include "string.h"
 
-#define LCD_ADDR (0x27 << 1) // Địa chỉ I2C của module LCD, có thể thay đổi tùy thuộc vào module của bạn
+#define LCD_ADDR (0x27 << 1) 
 
 void I2C_Initialize(void);
 void LCD_SendCommand(uint8_t cmd);
@@ -31,38 +34,77 @@ void delay_ms(uint32_t ms) {
     while ((msTicks - currentTicks) < ms);
 }
 
+uint8_t heartChar[8] =
+{
+0b00000, 0b00000, 0b01010, 0b11111, 0b11111, 0b01110, 0b00100, 0b00000
+};
+
+void LCD_CreateCustomChar(uint8_t location, uint8_t *charmap) {
+    LCD_SendCommand(0x40 | (location << 3)); // Set CGRAM address
+    for (int i = 0; i < 8; i++) {
+        LCD_SendData(charmap[i]);
+    }
+}
+
 int main(void)
 {
-	  // Cấu hình SysTick
+    // Cấu hình SysTick
     if (SysTick_Config(SystemCoreClock / 1000)) {
         while (1); // Lỗi nếu không thể cấu hình
     }
-		
+    
     I2C_Initialize();
     LCD_Init();
     
-    LCD_SetCursor(0, 4);  // Đặt con trỏ ở hàng 0, cột 0
-    LCD_SendString("Bach Hien");
-    
-    // // Đợi một lúc
-    delay_ms(2000);
-    
-    LCD_Clear();  // Xóa màn hình
-    
     // Cấu hình GPIO
     GPIO_Config();
-
+    LCD_Init();
+    LCD_Clear();
+    delay_ms(100);
+    
     while (1) {
-        GPIO_SetBits(GPIOC, GPIO_Pin_13);  // Bật LED
-        delay_ms(1000);                     // Đợi 500ms
-        GPIO_ResetBits(GPIOC, GPIO_Pin_13);// Tắt LED
-        delay_ms(1000);                     // Đợi 500ms
-		LCD_SetCursor(0, 4);
-		LCD_SendString("Bach Hien");
-		LCD_SetCursor(1, 4);
-		LCD_SendString("Le Huyen");
+        LCD_Clear();
+        delay_ms(100);
+        LCD_SetCursor(0, 0);
+        LCD_SendData(0); // Hiển thị ký tự trái tim đã tạo
+
+        // Chạy từ trái sang phải
+        for(int i = 0; i <= 16 - strlen("Le Huyen"); i++){
+            LCD_Clear();
+            delay_ms(100);
+            LCD_SetCursor(0, i);
+            LCD_SendString("Le Huyen");
+            LCD_SetCursor(1, 16 - i - strlen("Bach Hien"));
+            LCD_SendString("Bach Hien");
+            
+            GPIO_SetBits(GPIOC, GPIO_Pin_13);  // Bật LED
+            delay_ms(500);                     // Đợi 500ms
+            GPIO_ResetBits(GPIOC, GPIO_Pin_13);// Tắt LED
+            // delay_ms(500);                     // Đợi 500ms
+        }
+
+        // Chạy từ phải sang trái
+        for(int i = 16 - strlen("Le Huyen"); i >= 0; i--){
+            LCD_Clear();
+            delay_ms(100);
+            LCD_SetCursor(0, i);
+            LCD_SendString("Le Huyen");
+            LCD_SetCursor(1, 16 - i - strlen("Bach Hien"));
+            LCD_SendString("Bach Hien");
+            
+            GPIO_SetBits(GPIOC, GPIO_Pin_13);  // Bật LED
+            delay_ms(500);                     // Đợi 500ms
+            GPIO_ResetBits(GPIOC, GPIO_Pin_13);// Tắt LED
+            // delay_ms(500);                     // Đợi 500ms
+        }
+
+        // LCD_Clear();
+        // delay_ms(100);
+        // LCD_CreateCustomChar(1, heartChar); // Lưu ký tự trái tim vào vị trí 0 của CGRAM
+        // delay_ms(100);
     }
 }
+
 
 void GPIO_Config(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
