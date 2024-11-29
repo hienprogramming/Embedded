@@ -28,6 +28,7 @@ typedef signed long sint32;
 #define MAX_AIRBAG 1000
 #define MAX_ROTORSPEED 50
 #define TORQUE_REDUCTION_STEP 100  // Số bước giảm torque
+#define LOG_ERROR_MAX 10
 uint8 Limmit_Value;
 
 #define SNA_Airbag_Sensor 65535
@@ -65,6 +66,17 @@ typedef struct{
     WLC_State wlc;
 } EPS_Status;
 
+uint16 error_memory[LOG_ERROR_MAX];
+uint8 error_count = 0;
+
+void memory_error(uint16 error)
+{
+    if(error_count < LOG_ERROR_MAX){
+        error_memory[error_count] = 
+        error_count++;
+    }
+}
+
 float read_Torque_Sensor(uint16 *Data_Torque)
 {
     return (float)(*Data_Torque * 255) / 100.0;
@@ -74,7 +86,6 @@ float read_Airbag_Sensor(uint16 *Data_Airbag)
 {
     return (float)(*Data_Airbag * 100.0);
 }
-
 
 // %d: Dùng để in hoặc đọc giá trị kiểu int (số nguyên có dấu).
 // %hu: Dùng để in hoặc đọc giá trị kiểu unsigned short (số nguyên không dấu).

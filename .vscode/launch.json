@@ -9,7 +9,7 @@
                 "${file}", // File nguồn
                 "-g", // Thêm thông tin debug
                 "-o", // Tên file thực thi
-                "D:/C-development/TestandDebug/Pointer_and_Resgister.exe"
+                "C:/Working/C-development/hexfile.hex"
             ],
             "group": {
                 "kind": "build", // Loại task (build)

@@ -2,6 +2,6 @@
 
 int main() {
     printf("Hello, world!\n");
-    hexfile_merge();
+    // hexfile_merge();
     return 0;
 }
