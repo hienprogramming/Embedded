@@ -16,5 +16,3 @@ center_x, center_y = pyautogui.size()[0] // 2, pyautogui.size()[1] // 2
 
 # Chạy mãi mãi
 move_mouse_in_circle(radius, center_x, center_y)
-
-Khi lock máy (window + L), chương trình bị tắt, tôi muốn chương trình không bị tắt khi thực hiện việc trên
