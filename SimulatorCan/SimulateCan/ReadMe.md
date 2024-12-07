@@ -1,2 +1,0 @@
-SIMULATOR HARDWARE:
-gcc -DSIMULATION -o CanDriver_PB CanDriver_PB.c
