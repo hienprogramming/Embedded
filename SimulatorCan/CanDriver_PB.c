@@ -69,7 +69,9 @@ void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool s
     can_mailbox_t *rx_mailbox = &can_controller->mailbox[can_driver->rx_mailbox];
 
     if (can_driver->rx_mailbox >= 16) {
-        printf("Mailbox full! Message with ID=0x%X is lost.\n", simulated_message->id);
+        printf("Mailbox full! Message lost starting with ID=0x%X.\n", simulated_message->id);
+        
+        // Add a dot after "lost"
         printf("Clearing mailbox and waiting 5 seconds...\n");
 
         // Reset all mailboxes' status to false
@@ -81,49 +83,59 @@ void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool s
         can_driver->rx_mailbox = 0;
 
         delay_ms(5000);
-        return; // Bỏ qua xử lý hiện tại để bắt đầu nhận lại từ đầu
+        return;
     }
 
     if (simulated_status) {
-        // Ghi thông điệp vào mailbox
         rx_mailbox->message = *simulated_message;
         rx_mailbox->status = E_OK;
 
-        printf("Simulated message received [%llu]: ID=0x%X, DLC=%llu, Data = ", can_driver->rx_mailbox + 1, simulated_message->id, simulated_message->dlc);
+        printf("Simulated message received [%llu]: ID=0x%X, DLC=%llu, Data = ", 
+               can_driver->rx_mailbox + 1, simulated_message->id, simulated_message->dlc);
         for (int j = 0; j < 8; j++) {
             printf("%02X ", simulated_message->data[j]);
         }
         printf("\n");
 
         can_driver->rx_mailbox++;
-    } else {
-        printf("No new message RX in mailbox %llu\n", can_driver->rx_mailbox);
     }
 }
 
-// Base on can_read to continue
-void can_write(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status){
+void can_write(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status) {
     can_controller_t *can_controller = can_driver->can_controller;
     can_mailbox_t *tx_mailbox = &can_controller->mailbox[can_driver->tx_mailbox];
-    if (tx_mailbox->status) {
-            // Lấy thông điệp từ mailbox
-        if (can_driver->rx_mailbox >= 16) {
-            printf("Mailbox full! Message with ID=0x%X is lost.\n", simulated_message->id);
-            printf("Clearing mailbox and waiting 5 seconds...\n");
-            can_driver->tx_mailbox = 0;
-            delay_ms(5000);
+
+    if (can_driver->tx_mailbox >= 16) {
+        printf("Mailbox full! Message lost starting with ID=0x%X.\n", simulated_message->id);
+        printf("Clearing mailbox and waiting 5 seconds...\n");
+
+        // Reset all mailboxes' status to false
+        for (int i = 0; i < 16; i++) {
+            can_controller->mailbox[i].status = false;
         }
-        can_driver->tx_mailbox++;
-        printf("Mailbox message write [%d st/nd]: ID=0x%X, DLC=%llu, Data = ", can_driver->tx_mailbox, tx_mailbox->message.id, tx_mailbox->message.dlc);
-        for (int i = 0; i < 8; i++) {
-            printf("%02X ", tx_mailbox->message.data[i]);
+
+        // Reset tx_mailbox index
+        can_driver->tx_mailbox = 0;
+
+        delay_ms(5000);
+        return;
+    }
+
+    if (simulated_status) {
+        tx_mailbox->message = *simulated_message;
+        tx_mailbox->status = E_OK;
+
+        printf("Sent messages to Bus [%llu]: ID=0x%X, DLC=%llu, Data = ", 
+               can_driver->tx_mailbox + 1, simulated_message->id, simulated_message->dlc);
+        for (int j = 0; j < 8; j++) {
+            printf("%02X ", simulated_message->data[j]);
         }
         printf("\n");
-    }
-    else{
-        printf("No new message TX in mailbox %llu\n", can_driver->tx_mailbox);
+
+        can_driver->tx_mailbox++;
     }
 }
+
 
 
 // Hàm tạo message giả lập ngẫu nhiên
@@ -137,11 +149,103 @@ can_message_t generate_random_message() {
     return message;
 }
 
+
+// Rx
+void can_receive_multiple_messages_from_Bus(can_driver_t *can_driver, uint32_t num_messages) {
+    uint8_t num_messages_lost;
+
+    printf("Number of messages received: %d\n", num_messages);
+
+    if (num_messages > 16){
+        num_messages_lost = num_messages - 16;
+        printf("Number of messages lost: %d\n", num_messages_lost);
+    } else {
+        num_messages_lost = 0; // No lost messages
+    }
+
+    // Flag to track if mailbox has been cleared
+    bool mailbox_cleared = false;
+
+    // Receive multiple random messages
+    for (int i = 0; i < num_messages; i++) {
+        can_message_t random_message = generate_random_message();
+        bool simulated_status = E_OK;
+
+        // If mailbox has been cleared, stop processing more messages
+        if (mailbox_cleared) {
+            break;
+        }
+
+        // Call can_read to simulate receiving the message
+        can_read(can_driver, &random_message, simulated_status);
+
+        // Check if we've hit the mailbox limit
+        if (can_driver->rx_mailbox == 0 && i >= 16) {
+            mailbox_cleared = true;
+        }
+
+        // Add a short delay between receiving messages
+        delay_ms(500);
+    }
+
+    // After receiving, reset the rx_mailbox index to start fresh for the next cycle
+    can_driver->rx_mailbox = 0;
+    printf("RX mailbox cleared for next message send cycle.\n");
+}
+
+
+// Tx
+void can_send_multiple_messages_to_Bus(can_driver_t *can_driver, uint32_t num_messages) {
+uint8_t num_messages_lost;
+
+    printf("Number of messages sent: %d\n", num_messages);
+
+    if (num_messages > 16){
+        num_messages_lost = num_messages - 16;
+        printf("Number of messages lost: %d\n", num_messages_lost);
+    } else {
+        num_messages_lost = 0; // No lost messages
+    }
+
+    // Flag to track if mailbox has been cleared
+    bool mailbox_cleared = false;
+
+    // Send multiple random messages
+    for (int i = 0; i < num_messages; i++) {
+        can_message_t random_message = generate_random_message();
+        bool simulated_status = E_OK;
+
+        // If mailbox has been cleared, stop processing more messages
+        if (mailbox_cleared) {
+            break;
+        }
+
+        // Call can_read to simulate receiving the message
+        can_write(can_driver, &random_message, simulated_status);
+
+        // Check if we've hit the mailbox limit
+        if (can_driver->rx_mailbox == 0 && i >= 16) {
+            mailbox_cleared = true;
+        }
+
+        // Add a short delay between sending messages
+        delay_ms(500);
+    }
+
+    // After sending, reset the tx_mailbox index to start fresh for the next cycle
+    can_driver->tx_mailbox = 0;
+    printf("TX mailbox cleared for next message send cycle.\n");
+}
+
+
+
 // Main
 int main() {
+    // Sở dĩ không bị confict là bởi vì trước đó đã cấp 1 vùng nhớ tỉnh cho controller
     can_controller_t controller;
     can_driver_t driver;
     driver.can_controller = &controller;
+    uint8_t num_messages_Tx, num_messages_Rx;
 
     can_driver_init(&driver);
 
@@ -155,10 +259,24 @@ int main() {
     bool simulated_status = E_OK;
 
     while (true) {
-        can_message_t random_message = generate_random_message();
-        can_read(&driver, &random_message, simulated_status);
-        delay_ms(500);
+
+        printf("===================================\n");
+        printf("                 RX                \n");
+        printf("===================================\n");
+        num_messages_Rx = rand() % 30; // Random từ 0 đến 29 Tx
+        can_receive_multiple_messages_from_Bus(&driver, num_messages_Rx);
+        delay_ms(5000); // 5s để xem được Rx. Trong thực tế thời gian này là rất nhanh
+
+
+        printf("===================================\n");
+        printf("                 TX                \n");
+        printf("===================================\n");
+        num_messages_Tx = rand() % 25; // Random từ 0 đến 24 Tx
+        can_send_multiple_messages_to_Bus(&driver, num_messages_Tx);
+        delay_ms(5000); // 5s để xem được Rx. Trong thực tế thời gian này là rất nhanh
     }
 
     return 0;
 }
+
+
