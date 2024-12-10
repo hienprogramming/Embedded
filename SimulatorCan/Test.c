@@ -1,46 +1,54 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
+// CanIf_RxIndication implementation
+void CanIf_RxIndication(can_controller_t *Mailbox, PduInfoType *PduInfoPtr) {
+    uint32_t canId = Mailbox->cantrollerID;
+    uint8_t *canSduPtr = PduInfoPtr->SduDataPtr;
+    uint8_t canDlc = PduInfoPtr->SduLength;
 
-#define E_OK 1
-#define E_NOT_OK 0
-/*
-can_driver_t:
-    can_controller:
-        baudrate
-        base_address
-    rx_mailbox
-    tx_mailbox
-*/
+    printf("=== CanIf_RxIndication ===\n");
+    printf("Received message on CAN controller ID: %u\n", canId);
+    printf("DLC: %u, Data: ", canDlc);
 
-typedef struct 
-{
-    uint8_t can_controller_Id;
-    uint32_t baudrate;
-    uint64_t *base_address;
-}can_controller;
-
-
-typedef struct 
-{
-    can_controller *controller;
-    uint8_t rx_mailbox;
-    uint8_t tx_mailbox;
-    bool status_message;
-}can_driver_t;
-
-
-int main()
-{
-    can_controller controller_variable;
-    can_driver_t can_driver;
-    can_driver.controller = &controller_variable;
-    uint64_t base_address_data = 0x56768687;
-    can_driver.controller->base_address = &base_address_data;
-    can_driver.controller->baudrate = 500000;
-    printf("Baudrate is: %u\n", can_driver.controller->baudrate);
-    printf("Base address is: 0x%llx\n", can_driver.controller->base_address);
-    printf("Hien Bach Dep Trai\n");
+    for (uint8_t i = 0; i < canDlc; i++) {
+        printf("%02X ", canSduPtr[i]);
+    }
+    printf("\n");
 }
 
+// CAN read function
+void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status) {
+    can_controller_t *can_controller = can_driver->can_controller;
+    can_mailbox_t *rx_mailbox = &can_controller->mailbox[can_driver->rx_mailbox];
 
+    if (can_driver->rx_mailbox >= 16) {
+        printf("Mailbox full! Message lost starting with ID=0x%X.\n", simulated_message->id);
+        printf("Clearing mailbox and waiting 5 seconds...\n");
+
+        for (int i = 0; i < 16; i++) {
+            can_controller->mailbox[i].status = false;
+        }
+
+        can_driver->rx_mailbox = 0;
+        delay_ms(5000);
+        return;
+    }
+
+    if (simulated_status) {
+        rx_mailbox->message = *simulated_message;
+        rx_mailbox->status = E_OK;
+
+        printf("Simulated message received [%llu]: ID=0x%X, DLC=%llu, Data = ", 
+               can_driver->rx_mailbox + 1, simulated_message->id, simulated_message->dlc);
+        for (int j = 0; j < 8; j++) {
+            printf("%02X ", simulated_message->data[j]);
+        }
+        printf("\n");
+
+        PduInfoType pduInfo;
+        pduInfo.SduDataPtr = simulated_message->data;
+        pduInfo.SduLength = simulated_message->dlc;
+
+        CanIf_RxIndication(can_controller, &pduInfo);
+
+        can_driver->rx_mailbox++;
+    }
+}

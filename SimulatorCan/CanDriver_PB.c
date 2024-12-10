@@ -7,6 +7,7 @@
 
 #define E_OK 1
 #define NOT_OK 0
+// #define ENABLED_DEBUG
 
 // Định nghĩa cấu trúc CAN
 typedef struct {
@@ -33,6 +34,22 @@ typedef struct {
     uint64_t tx_mailbox;
     uint64_t rx_mailbox;
 } can_driver_t;
+
+typedef uint16_t PduLengthType;
+typedef struct {
+    uint8_t *SduDataPtr;			// payload
+    PduLengthType SduLength;	// length of SDU
+    uint32_t id;
+} PduInfoType;
+
+typedef struct {
+    uint32_t hrh;
+    uint32_t hth;
+} hoh;
+
+
+void CanIf_RxIndication(hoh Mailbox, PduInfoType *PduInfoPtr);
+void CanIf_TxTransmit(hoh Mailbox, PduInfoType *PduInfoPtr);
 
 // Hàm delay
 uint32_t get_current_time_ms() {
@@ -67,6 +84,10 @@ void can_driver_init(can_driver_t *can_driver) {
 void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status) {
     can_controller_t *can_controller = can_driver->can_controller;
     can_mailbox_t *rx_mailbox = &can_controller->mailbox[can_driver->rx_mailbox];
+    PduInfoType PduInfor;
+    static hoh pdInfor_ID_to_CanIf;
+
+    pdInfor_ID_to_CanIf.hrh = 1;
 
     if (can_driver->rx_mailbox >= 16) {
         printf("Mailbox full! Message lost starting with ID=0x%X.\n", simulated_message->id);
@@ -96,6 +117,19 @@ void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool s
             printf("%02X ", simulated_message->data[j]);
         }
         printf("\n");
+        
+        PduInfor.SduDataPtr = simulated_message->data;
+        PduInfor.SduLength = simulated_message->dlc;
+        PduInfor.id = simulated_message->id;
+
+        // pdInfor_ID_to_CanIf is different with CanId from Can 
+        pdInfor_ID_to_CanIf.hrh++;
+
+        if (pdInfor_ID_to_CanIf.hrh > 16){
+            pdInfor_ID_to_CanIf.hrh = 1;
+        }
+
+        CanIf_RxIndication(pdInfor_ID_to_CanIf, &PduInfor);
 
         can_driver->rx_mailbox++;
     }
@@ -104,6 +138,9 @@ void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool s
 void can_write(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status) {
     can_controller_t *can_controller = can_driver->can_controller;
     can_mailbox_t *tx_mailbox = &can_controller->mailbox[can_driver->tx_mailbox];
+    PduInfoType PduInfor;
+    static hoh pdInfor_ID_to_CanIf;
+    pdInfor_ID_to_CanIf.hth = 1;
 
     if (can_driver->tx_mailbox >= 16) {
         printf("Mailbox full! Message lost starting with ID=0x%X.\n", simulated_message->id);
@@ -132,16 +169,41 @@ void can_write(can_driver_t *can_driver, can_message_t *simulated_message, bool 
         }
         printf("\n");
 
+
+        PduInfor.SduDataPtr = simulated_message->data;
+        PduInfor.SduLength = simulated_message->dlc;
+        PduInfor.id = simulated_message->id;
+
+        // pdInfor_ID_from_CanIf is different with Can 
+        pdInfor_ID_to_CanIf.hth++;
+
+        if (pdInfor_ID_to_CanIf.hth > 16){
+            pdInfor_ID_to_CanIf.hth = 1;
+        }
+
+        CanIf_TxTransmit(pdInfor_ID_to_CanIf, &PduInfor);
+
         can_driver->tx_mailbox++;
     }
 }
 
 
 
-// Hàm tạo message giả lập ngẫu nhiên
-can_message_t generate_random_message() {
+// Hàm tạo message giả lập ngẫu nhiên Rx
+can_message_t generate_random_message_Rx() {
     can_message_t message;
-    message.id = 0x600 + (rand() % 100); // Random ID từ 0x600 đến 0x6FF
+    message.id = 0x600 + (rand() % 49); // Random ID từ 0x600 đến 0x649
+    message.dlc = 8;                     // Cố định DLC là 8 byte
+    for (int i = 0; i < 8; i++) {
+        message.data[i] = rand() % 256;  // Random từng byte trong khoảng 0x00 - 0xFF
+    }
+    return message;
+}
+
+// Hàm tạo message giả lập ngẫu nhiên TX
+can_message_t generate_random_message_TX() {
+    can_message_t message;
+    message.id = 0x650 + (rand() % 100); // Random ID từ 0x650 đến 0x6FF
     message.dlc = 8;                     // Cố định DLC là 8 byte
     for (int i = 0; i < 8; i++) {
         message.data[i] = rand() % 256;  // Random từng byte trong khoảng 0x00 - 0xFF
@@ -168,7 +230,7 @@ void can_receive_multiple_messages_from_Bus(can_driver_t *can_driver, uint32_t n
 
     // Receive multiple random messages
     for (int i = 0; i < num_messages; i++) {
-        can_message_t random_message = generate_random_message();
+        can_message_t random_message = generate_random_message_Rx();
         bool simulated_status = E_OK;
 
         // If mailbox has been cleared, stop processing more messages
@@ -212,7 +274,7 @@ uint8_t num_messages_lost;
 
     // Send multiple random messages
     for (int i = 0; i < num_messages; i++) {
-        can_message_t random_message = generate_random_message();
+        can_message_t random_message = generate_random_message_TX();
         bool simulated_status = E_OK;
 
         // If mailbox has been cleared, stop processing more messages
@@ -220,7 +282,7 @@ uint8_t num_messages_lost;
             break;
         }
 
-        // Call can_read to simulate receiving the message
+        // Call can_write to simulate receiving the message
         can_write(can_driver, &random_message, simulated_status);
 
         // Check if we've hit the mailbox limit
@@ -238,6 +300,37 @@ uint8_t num_messages_lost;
 }
 
 
+void CanIf_RxIndication(hoh Mailbox, PduInfoType *PduInfoPtr){
+    uint32_t canid = Mailbox.hrh;
+    uint8_t *canSduPtr = PduInfoPtr->SduDataPtr;
+    uint8_t canDlc = PduInfoPtr->SduLength;
+
+#if defined ENABLED_DEBUG
+    printf("===== CanIf_RxIndication =====\n");
+    printf("Received message on CAN controller ID: %d\n", canid);
+    printf("DLC: %u, Data: ", canDlc);
+    for (int i = 0; i < canDlc; i++){
+        printf("%02X ", canSduPtr[i]);
+    }
+    printf("\n");
+#endif
+}
+
+void CanIf_TxTransmit(hoh Mailbox, PduInfoType *PduInfoPtr){
+    uint32_t canid = Mailbox.hth;
+    uint8_t *canSduPtr = PduInfoPtr->SduDataPtr;
+    uint8_t canDlc = PduInfoPtr->SduLength;
+
+#if defined ENABLED_DEBUG
+    printf("===== CanIf_TxTransmit =====\n");
+    printf("Sent message to CAN controller: %d\n", canid);
+    printf("DLC: %u, Data: ", canDlc);
+    for (int i = 0; i < canDlc; i++){
+        printf("%02X ", canSduPtr[i]);
+    }
+    printf("\n");
+#endif
+}
 
 // Main
 int main() {
