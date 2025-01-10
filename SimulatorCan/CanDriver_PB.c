@@ -4,6 +4,7 @@
 #include <stdlib.h> // Cần cho rand()
 #include <time.h>   // Cần cho srand()
 #include <windows.h> // Cần cho Sleep
+#include <string.h>
 
 #define E_OK 1
 #define NOT_OK 0
@@ -50,6 +51,7 @@ typedef struct {
 
 void CanIf_RxIndication(hoh Mailbox, PduInfoType *PduInfoPtr);
 void CanIf_TxTransmit(hoh Mailbox, PduInfoType *PduInfoPtr);
+void CanIf_TxConfirmation(hoh Mailbox, PduInfoType *PduInfoPtr);
 
 // Hàm delay
 uint32_t get_current_time_ms() {
@@ -135,6 +137,11 @@ void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool s
     }
 }
 
+
+#define MAX_MESSAGES 16
+
+can_message_t originalMessages[MAX_MESSAGES];
+
 void can_write(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status) {
     can_controller_t *can_controller = can_driver->can_controller;
     can_mailbox_t *tx_mailbox = &can_controller->mailbox[can_driver->tx_mailbox];
@@ -174,14 +181,26 @@ void can_write(can_driver_t *can_driver, can_message_t *simulated_message, bool 
         PduInfor.SduLength = simulated_message->dlc;
         PduInfor.id = simulated_message->id;
 
+        // copy data original
+        originalMessages[can_driver->tx_mailbox] = *simulated_message;
+
         // pdInfor_ID_from_CanIf is different with Can 
         pdInfor_ID_to_CanIf.hth++;
 
         if (pdInfor_ID_to_CanIf.hth > 16){
             pdInfor_ID_to_CanIf.hth = 1;
         }
-
+        
+        // Lưu trữ dữ liệu gốc được gửi từ CanDrv
+        for (int i = 0; i < 16; i++) {
+            if (originalMessages[i].id == 0) {
+                originalMessages[i] = *simulated_message;
+                break;
+            }
+        }
         CanIf_TxTransmit(pdInfor_ID_to_CanIf, &PduInfor);
+
+        CanIf_TxConfirmation(pdInfor_ID_to_CanIf, &PduInfor);
 
         can_driver->tx_mailbox++;
     }
@@ -201,16 +220,18 @@ can_message_t generate_random_message_Rx() {
 }
 
 // Hàm tạo message giả lập ngẫu nhiên TX
+// Hàm tạo message giả lập ngẫu nhiên TX
 can_message_t generate_random_message_TX() {
     can_message_t message;
+    static uint8_t MAX1FrameTx; 
     message.id = 0x650 + (rand() % 100); // Random ID từ 0x650 đến 0x6FF
     message.dlc = 8;                     // Cố định DLC là 8 byte
-    for (int i = 0; i < 8; i++) {
+    MAX1FrameTx = rand() % 10; // Random 10 để simulator for hàm CanIf_TxConfirmation
+    for (int i = 0; i < MAX1FrameTx; i++) {
         message.data[i] = rand() % 256;  // Random từng byte trong khoảng 0x00 - 0xFF
     }
     return message;
 }
-
 
 // Rx
 void can_receive_multiple_messages_from_Bus(can_driver_t *can_driver, uint32_t num_messages) {
@@ -320,7 +341,7 @@ void CanIf_TxTransmit(hoh Mailbox, PduInfoType *PduInfoPtr){
     uint32_t canid = Mailbox.hth;
     uint8_t *canSduPtr = PduInfoPtr->SduDataPtr;
     uint8_t canDlc = PduInfoPtr->SduLength;
-
+    // printf("Sent message to CAN controller: %d\n", canid);
 #if defined ENABLED_DEBUG
     printf("===== CanIf_TxTransmit =====\n");
     printf("Sent message to CAN controller: %d\n", canid);
@@ -331,6 +352,87 @@ void CanIf_TxTransmit(hoh Mailbox, PduInfoType *PduInfoPtr){
     printf("\n");
 #endif
 }
+
+// Hàm này trả về dữ liệu gốc được gửi từ CanDrv
+can_message_t getOriginalMessage(uint32_t canid) {
+    // Giả sử bạn có một mảng lưu trữ dữ liệu gốc được gửi từ CanDrv
+    can_message_t originalMessages[16];
+    // ...
+
+    // Tìm kiếm dữ liệu gốc dựa trên canid
+    for (int i = 0; i < 16; i++) {
+        if (originalMessages[i].id == canid) {
+            return originalMessages[i];
+        }
+    }
+
+    // Nếu không tìm thấy dữ liệu gốc, trả về một giá trị mặc định
+    can_message_t defaultMessage;
+    defaultMessage.id = 0;
+    defaultMessage.dlc = 0;
+    memset(defaultMessage.data, 0, 8);
+    return defaultMessage;
+}
+
+// Hàm này tính toán checksum của dữ liệu
+uint8_t calculateChecksum(uint8_t *data, uint8_t length) {
+    uint8_t checksum = 0;
+    for (int i = 0; i < length; i++) {
+        checksum += data[i];
+    }
+    return checksum;
+}
+
+// Hàm này trả về checksum của dữ liệu gốc
+uint8_t getOriginalChecksum(uint32_t canid) {
+    can_message_t originalMessage = getOriginalMessage(canid);
+    return calculateChecksum(originalMessage.data, originalMessage.dlc);
+}
+
+// CanIf->Can to confirm transmission
+void CanIf_TxConfirmation(hoh Mailbox, PduInfoType *PduInfoPtr) {
+    uint32_t canid = Mailbox.hth;
+    uint8_t *canSduPtr = PduInfoPtr->SduDataPtr;
+    uint8_t canDlc = PduInfoPtr->SduLength;
+
+    // Truy xuất dữ liệu gốc từ originalMessages
+    // can_message_t originalMessage = originalMessages[canid - 1]; // Trừ 1 vì chỉ số mảng bắt đầu từ 0
+
+    // printf("===== CanIf_TxConfirmation =====\n");
+
+    // Kiểm tra checksum
+    // uint8_t originalChecksum = calculateChecksum(originalMessage.data, originalMessage.dlc);
+    // uint8_t currentChecksum = calculateChecksum(canSduPtr, canDlc);
+
+    // if (originalChecksum != currentChecksum) {
+    //     printf("Checksum is mismatch! (Origin: %02X, Current: %02X)\n", originalChecksum, currentChecksum);
+    //     return;
+    // }
+
+    // printf("Transmission confirmed. DLC: %u, Data: ", canDlc);
+    // for (int i = 0; i < canDlc; i++) {
+    //     printf("%02X ", canSduPtr[i]);
+    // }
+    // printf("\n");
+}
+
+/*===================================================*/
+/*================== CanIf to Pdur ==================*/
+/*===================================================*/
+
+// void PduR_LoIfRxIndication(PduIdType pduId, PduInfoType* pduInfoPtr, uint8_t serviceId) {
+
+//     PduR_ARC_RxIndication(pduId, pduInfoPtr, serviceId);
+// /*lint -e818 Diclaring pduInfoPtr as const PduInfoType* will cause deviation in ASR API prototype */
+// }
+
+// ID in Pdur will start from 1 to 16 correctsponding with number of messages
+// User will config for pduID
+// typedef uint16_t PduIdType;
+// void PduR_CanIfRxIndication(PduIdType pduId, PduInfoType* pduInfoPtr){
+//     PduR_LoIfRxIndication(pduId, pduInfoPtr, 0x01); // Service PduR_CanIfRxIndication 0x01
+// }
+
 
 // Main
 int main() {
@@ -371,5 +473,4 @@ int main() {
 
     return 0;
 }
-
 
