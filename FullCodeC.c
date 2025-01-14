@@ -326,7 +326,9 @@ void def_double_pointer()
     EXAMPLE 10. Copy data 
         With strcpy
         Assign data by array
-        Sử dụng hàm memcpy từ thư viện <string.h> để sao chép vùng nhớ động (Not emplement)
+        Sử dụng hàm memcpy từ thư viện <string.h> để sao chép vùng nhớ động (Not emplement):
+            strcpy(Dest, Source): string data
+            memcpy(Dest, Source): number data
         Copy data by pointer
         Copy data by Argument
 
@@ -362,6 +364,15 @@ void def_strcpy()
     printf("Point of student is: %c\n", Student.point);
 
     def_strcpy_source_to_Dest();
+}
+
+
+void Read_Toorque_Sensor_memcpy(uint8_t *TorqueSensor, uint8_t numSenSor)
+{
+    for (uint8_t i = 0; i < numSenSor; i++){
+        TorqueSensor[i] = rand() % 256;
+        printf("TorqueSensor[%d]: %d\n", i, TorqueSensor[i]);
+    }
 }
 
 void assign_data_by_array()
@@ -622,6 +633,116 @@ void Show_Result_Accsess_Register()
     Accsess_Register_Vitualization();
 }
 
+/*
+    EXAMPLE 17. Static and global VARIABLE
+*/
+int global_var = 10;
+static int static_var = 10;
+
+void function1()
+{
+    int local_var = 10;
+    static int local_var_static = 10;
+    printf("global_var co gia tri: %d\n", global_var);
+    printf("static_var co gia tri: %d\n", static_var);
+    printf("local_var co gia tri: %d\n", local_var);
+    printf("local_var_static co gia tri: %d\n", local_var_static);
+
+    global_var++;
+    static_var++;
+    local_var++;
+    local_var_static++;
+}
+
+void function2()
+{
+    int local_var = 10;
+    static int local_var_static = 10;
+    printf("global_var co gia tri: %d\n", global_var);
+    printf("static_var co gia tri: %d\n", static_var);
+    printf("local_var co gia tri: %d\n", local_var);
+    printf("local_var_static co gia tri: %d\n", local_var_static);
+
+    global_var++;
+    static_var++;
+    local_var++;
+    local_var_static++;
+}
+
+/*
+    EXAMPLE 18. Ternary operator
+    |--------------------------------------|
+    |condition ? expression1 : expression2 |
+    |--------------------------------------|
+    return (*a > *b) ? (*a + *b) : (*b - *a);
+*/
+
+uint8_t Ternary_Operator(uint8_t *a, uint8_t *b)
+{
+    return (*a > *b) ? (*a + *b) : (*b - *a);
+}
+
+
+/*
+    EXAMPLE 19. StorageClassesInC
+    Storage Classes In C
+    1. auto
+    2. extern
+    3. static
+    4. register
+*/
+
+// Biến toàn cục (global variable) - thuộc data segment
+uint8_t global_variable = 100;
+
+// Hàm minh họa auto (mặc định là auto)
+void auto_test() {
+    uint8_t auto_var = 10; // Biến auto nằm trên stack
+    auto_var += 10;
+    printf("Auto_Var: %d\n", auto_var);
+}
+
+// Hàm minh họa extern
+void extern_test() {
+    extern uint8_t global_variable; // Tham chiếu đến biến toàn cục
+    global_variable += 10;
+    printf("Global_Variable (Extern): %d\n", global_variable);
+}
+
+// Hàm minh họa static
+void static_test() {
+    static uint8_t static_variable = 0; // Biến static giữ giá trị qua các lần gọi
+    static_variable += 10;
+    printf("Static_Variable: %d\n", static_variable);
+}
+
+// Hàm minh họa register
+void register_test() {
+    register uint8_t register_variable = 0; // Khuyến nghị lưu trong thanh ghi
+    register_variable += 10;
+    printf("Register_Variable: %d\n", register_variable);
+}
+
+void DisPlay_StorageClassesInC()
+{
+    printf("Testing auto:\n");
+    auto_test();
+    auto_test();
+
+    printf("\nTesting extern:\n");
+    extern_test();
+    extern_test();
+
+    printf("\nTesting static:\n");
+    static_test();
+    static_test();
+
+    printf("\nTesting register:\n");
+    register_test();
+    register_test();
+
+}
+
 int main() {
     /*Example 1*/
     read_write_data();
@@ -666,6 +787,14 @@ int main() {
     copy_data_by_pointer_struct();
     Perform_Copy_Data_By_Argument();
 
+    uint8_t numSenSorEps = 8;
+    uint8_t SenSor_Eps[numSenSorEps]; 
+    uint8_t copydataSenSor[numSenSorEps];
+    Read_Toorque_Sensor_memcpy(SenSor_Eps, numSenSorEps);  // don't have &SenSor_Eps, because we are pointing to SenSor_Eps[0]
+    memcpy(copydataSenSor, SenSor_Eps, numSenSorEps);
+    for (uint8_t i = 0; i < numSenSorEps; i++){
+        printf("copydataSenSor[%d]: %d\n", i, copydataSenSor[i]);
+    }
 
     /*Example 11*/
     Fibonacci(10);
@@ -687,6 +816,24 @@ int main() {
     /*Example 16*/
     Show_Result_Accsess_Register();
 
+    /*Example 17*/
+    printf("Function1\n");
+    function1();
+    printf("Function1+1\n");
+    function1();
+    printf("Function2\n");
+    function2();
+    printf("Function2+2\n");
+    function2();
+
+
+    /*Example 18*/
+    uint8_t a = 5, b = 4;
+    uint8_t value = Ternary_Operator(&a, &b);
+    printf("value is: %d", value);
+
+    /*Example 19*/
+    DisPlay_StorageClassesInC();
 
     return 0;
 }

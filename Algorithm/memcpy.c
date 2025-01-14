@@ -3,32 +3,38 @@
 #include<stdio.h>
 #include<stdlib.h> // Quản lí bộ nhớ với malloc(), calloc(), realloc(), free(), toán học
 #include <string.h> // Quản lí và chứa memcpy
+#include <stdint.h>
 
-typedef unsigned char uint8_t;
-typedef unsigned int uint16_t;
-void read_from_sensor(uint8_t *data)
+void Read_Toorque_Sensor(uint8_t *TorqueSensor, uint8_t numSenSor)
 {
-    data[0] = 0x10; // Send first byte
-    data[1] = 0x30; // Send second byte
+    for (uint8_t i = 0; i < numSenSor; i++){
+        TorqueSensor[i] = rand() % 256;
+        printf("TorqueSensor[%d]: %d\n", i, TorqueSensor[i]);
+    }
 }
 
-float convert_to_C(uint16_t dataraw)
-{
-    return (float) (dataraw/10.0);
-}
 int main()
 {
-    uint8_t gpio_data[2];
-    uint16_t dataraw;
-    float data_C;
-    read_from_sensor(gpio_data);
+    uint8_t numSenSorEps = 8;
+    uint8_t SenSor_Eps[numSenSorEps]; 
+    uint8_t copydataSenSor[numSenSorEps];
 
-    printf("sizeof gpio_data: %d\n", sizeof(gpio_data));
+    Read_Toorque_Sensor(SenSor_Eps, numSenSorEps);  // don't have &SenSor_Eps, because we are pointing to SenSor_Eps[0]
 
-    memcpy(&dataraw, gpio_data, sizeof(gpio_data));
-    data_C = convert_to_C(dataraw);
-    printf("data_C = %.2f\n", data_C);
-    
-    return 1;  
+    memcpy(copydataSenSor, SenSor_Eps, numSenSorEps);
+
+    for (uint8_t i = 0; i < numSenSorEps; i++){
+        printf("copydataSenSor[%d]: %d\n", i, copydataSenSor[i]);
+    }
+
+    return 0;  
 }
 
+// Statement	Purpose	                    Scope	                    Typical Use Case
+// return 0	    Success	                    Returns to caller (main)	Indicating successful program execution.
+// return 1	    Generic error or failure	Returns to caller	        Indicating an error occurred.
+// return -1	Specific error or failure	Returns to caller	        Indicating a specific type of error.
+// exit(0)	    Success	                    erminates program	        Immediate termination with success.
+// exit(1)	    Error	                    Terminates program	        Immediate termination with error.
+
+ 
