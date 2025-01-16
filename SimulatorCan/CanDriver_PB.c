@@ -83,7 +83,8 @@ void can_driver_init(can_driver_t *can_driver) {
     can_driver->rx_mailbox = 0;
 }
 
-void can_read(can_driver_t *can_driver, can_message_t *simulated_message, bool simulated_status) {
+void can_read(can_driver_t *can_driver, can_message_t *simulated_message, \
+    bool simulated_status) {
     can_controller_t *can_controller = can_driver->can_controller;
     can_mailbox_t *rx_mailbox = &can_controller->mailbox[can_driver->rx_mailbox];
     PduInfoType PduInfor;
