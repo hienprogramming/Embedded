@@ -133,7 +133,7 @@ void Pointer_Like_Array_Malloc()
         printf("Invalid input!!!\n");
         exit(-1);
     }
-    uint32_t *arr = (uint32_t *)malloc(n * sizeof(uint32_t));
+    uint32_t *arr = (uint32_t *)malloc(n * sizeof(uint32_t)); 
     if (arr == NULL){
         printf("Memory allocation failed\n");
         exit(-1);
@@ -143,7 +143,7 @@ void Pointer_Like_Array_Malloc()
         scanf("%d", &arr);
     }
     for (int i = 0; i < n; i++){
-        printf("Address of *arr[%d]: %p", (void *)&arr[i]);
+        printf("Address of *arr[%d]: %p", &arr[i]);
         printf("Value of *arr[%d]: %d", arr[i]);
     }
 
@@ -152,16 +152,20 @@ void Pointer_Like_Array_Malloc()
     free(arr);
 
 }
+// array_tem[3]
+// array_tem[4] =, size_tem = sizeof(array_tem) / sizeof(array_tem[0])
+// array_tem[4] = 
+// realloc(*arr, size_tem)
 
 void Pointer_Like_Array_Normal()
 {
     int arr[5];
-    int *prt = arr; 
+    int *prt = arr; // pointer take the first element of array -> no need use "&" like digital
 
     printf("Enter the number of arr: \n");
     for (int i = 0; i < 4 ; i++)
     {
-        scanf("%d", &arr[i]);
+        uint8_t rssult = scanf("%d", &arr[i]); // Phai có bien result de kiem tra input. Nếu không có input sẽ không được lưu lại
     }
     for (int i = 0; i < 4 ; i++)
     {
@@ -192,20 +196,33 @@ void Pointer_Is_Assigned_Variable()
 
 void Pointer_Is_Assigned_Array()
 {
-    uint8_t arr[4]; // Max 4 data in array
-    uint8_t *prt = arr; // The first index of array (arr[0])
-    printf("Enter 4 numbers: \n");
-    for (int i = 0; i < 4; i++){
-        scanf("%d", &arr[i]);
+    uint8_t arr[4];
+    uint8_t *prt = arr;
+    printf("Enter 4 numbers (0-255): \n");
+    
+    // Lý do phải dùng int temp thay vì uint8_t temp:
+    // 1. scanf("%u", &temp) với uint8_t temp sẽ gây lỗi vì scanf cần một buffer đủ lớn (int)
+    // để lưu giá trị tạm thời trước khi kiểm tra range
+    // 2. Nếu dùng uint8_t, khi người dùng nhập số >255, giá trị sẽ bị tràn và wrap around
+    // thay vì cho phép ta kiểm tra range một cách chính xác
+    // 3. Sau khi kiểm tra range hợp lệ (0-255), ta mới ép kiểu an toàn về uint8_t
+    for (uint8_t i = 0; i < 4; i++){
+        int temp;
+        uint8_t result = scanf("%u", &temp);
+        arr[i] = (uint8_t)temp;
     }
+
+    
+    printf("\nUsing array indexing:\n");
     for (int i = 0; i < 4; i++){
-        printf("Address of arr[%d]: %p\n", i , (void *)&arr[i]);
-        printf("Value of arr[%d]: %d\n", i , arr[i]);
+        printf("Address of arr[%d]: %p\n", i, (void *)&arr[i]);
+        printf("Value of arr[%d]: %d\n\n", i, arr[i]);
     }
+    
     printf("\nUsing pointer arithmetic:\n");
     for (int i = 0; i < 4; i++){
-        printf("Address of pointer[%d]: %p", i, (prt + i));
-        printf("Value of pointer[%d]: %d", i, *(prt + i));
+        printf("Address of pointer[%d]: %p\n", i, (void *)(prt + i));
+        printf("Value of pointer[%d]: %d\n\n", i, *(prt + i));
     }
 }
 
@@ -213,11 +230,11 @@ void Pointer_Is_Assigned_Array()
     EXAMPLE 8. Struct normal and pointer:
                     With struct, each element is stored each different others.
                     -> We can access to other element at the same time.
-                    -> Sizeof struct is size of all element in struct.
+                    -> Sizeof struct is size of all element in struct. (Optimize mem: should be arrange from smallest to biggest)
                Union:
                    Union like struct, but all members are stored in the same location
                    -> Only member in can store data at the same time.
-               Ecnum:
+               Enum:
                    
 */
 typedef struct
@@ -287,12 +304,20 @@ void def_union_like_struct()
 }
 
 enum Value{
-    value1, // 0
+    value1, // 0 
     value2, // 1
     value3 = 3, // 3
     value4, // 4
     value5, // 5 
 };
+
+typedef enum{
+    value1,
+    value2,
+    value3,
+    value4,
+    value5
+}Enum_TypeDef;
 
 void Enum_Test()
 {
@@ -348,11 +373,11 @@ void def_strcpy_source_to_Dest()
 
     strcpy(Dest, src); // Copy data from src to Dest
 
-    printf("src: %s\n", Dest);
+    printf("src: %s\n", src);
     printf("Dest: %s\n", Dest);
 }
 
-void def_strcpy()
+void def_strcpy_source_to_Dest_size()
 {
     Student_t Student;
     strcpy(Student.name, "HienBach");
@@ -366,6 +391,20 @@ void def_strcpy()
     def_strcpy_source_to_Dest();
 }
 
+typedef struct {
+    int id;
+    char name[20];
+} Student;
+
+void def_memcpy()
+{
+    Student s1 = {101, "Hien"};
+    Student s2;
+
+    memcpy(&s2, &s1, sizeof(Student));
+
+    printf("ID: %d, Name: %s", s2.id, s2.name);
+}
 
 void Read_Toorque_Sensor_memcpy(uint8_t *TorqueSensor, uint8_t numSenSor)
 {
@@ -606,7 +645,7 @@ void Accsess_Register_method2(uint32_t value)
 {
     // Write value to 0x2000
     // Create one pointer have value 0x2000 with volatile
-    uint32_t *prt = (volatile uint32_t *)0x2000;
+    volatile uint32_t *prt = (volatile uint32_t *)0x2000;
     *prt = value;
 }
 
@@ -681,6 +720,10 @@ uint8_t Ternary_Operator(uint8_t *a, uint8_t *b)
 {
     return (*a > *b) ? (*a + *b) : (*b - *a);
 }
+
+static const uint8_t a;
+const static uint8_t b;
+
 
 
 /*
@@ -782,6 +825,145 @@ void array_3D()
     }
 }
 
+/*
+    EXAMPLE 21. __I__O__IO
+*/
+
+
+typedef volatile unsigned int const __I;
+typedef volatile unsigned int __O;
+typedef volatile unsigned int __IO;
+
+// CTRL, STATUS, CMD
+typedef struct{
+    __I uint32_t CTRL;
+    __O uint32_t STATUS;
+    __IO uint32_t CMD;
+}Peripheral_TypeDef;
+
+Peripheral_TypeDef *Peripheral = (Peripheral_TypeDef *)0x40000000;
+
+void def_I_O_IO()
+{
+    volatile uint32_t dummy = Peripheral->CTRL;
+    Peripheral->STATUS = 0;
+    Peripheral->CMD = 0;
+}
+
+/*
+    EXAMPLE 22. Delete elements in array
+*/
+void deleteElements() 
+{
+    int array1[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int size1 = sizeof(array1) / sizeof(array1[0]);
+    int index = 2; // Index of element to delete
+    
+    // Shift elements left to overwrite element at index
+    for (int i = index; i < size1 - 1; i++) {
+        array1[i] = array1[i + 1];
+    }
+    size1--;
+
+    // Print the modified array
+    printf("Modified array1: ");
+    for (int i = 0; i < size1; i++) {
+        printf("%d ", array1[i]);
+    }
+
+    int array2[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}; // Fixed array size to 11
+    int size2 = sizeof(array2) / sizeof(array2[0]);
+    int indexarray2 = 2;
+    int indexarray6 = 6;
+
+    // Delete element at index 2
+    for(int i = indexarray2; i < size2 - 1; i++) {
+        array2[i] = array2[i + 1];
+    }
+    size2--;
+    
+    // Delete element at index 6 
+    for(int i = indexarray6 - 1; i < size2 - 1; i++) {
+        array2[i] = array2[i + 1];
+    }
+    size2--;
+    printf("\nModified array2: ");
+    for (int i = 0; i < size2; i++){
+        printf("%d ", array2[i]);
+    }
+
+}
+
+/*
+    EXAMPLE 23. Add elements via realloc
+*/
+void addElements_via_realloc()
+{
+    uint8_t original_size = 11;
+    uint8_t new_size = original_size + 3;
+
+    uint8_t *array = malloc(original_size * sizeof(uint8_t));
+
+    if (array == NULL){
+        printf("Initialize is failed!");
+        return;
+    }
+    printf("Initialization of array: ");
+    for (uint8_t i = 0; i < original_size; i++){
+        array[i] = i;
+        printf("%d ", array[i]);
+    }
+
+    uint8_t *temp = realloc(array, new_size * sizeof(uint8_t));
+    if (temp == NULL)
+    {
+        printf("Initialize is failed!");
+        free(temp);
+        return;
+    }
+    *array = *temp;
+    array[original_size] = 100;
+    array[original_size + 1] = 101;
+    array[original_size + 2] = 102;
+    printf("\nrealloc of array: ");
+    for (uint8_t i = 0; i < new_size; i++)
+    {
+        printf("%d ", array[i]);
+    }
+    
+    free(array);
+}
+
+/*EXAMPLE 24. assert */
+void test_assert()
+{
+    uint8_t a = 7;
+    assert(a==5); // When the value or something is not like expectation -> assertion is failed and break remaining code of function
+    printf("passed to assert");
+}
+
+
+/*EXAMPLE 25. Con trỏ hằng và hằng con trỏ*/
+void controhang()
+{
+	int a = 10;
+	int b = 11;
+
+	const int *p = &a;
+	*p = 100; // Không hợp lệ
+	p = &b;   // Hợp lệ
+}
+
+void hangcontro()
+{
+    int a = 10;
+	int b = 11;
+
+	int* const p = &a;
+	*p = 100; // Hợp lệ
+	p = &b;   // Không hợp lệ
+}
+
 int main() {
     /*Example 1*/
     read_write_data();
@@ -822,6 +1004,7 @@ int main() {
 
     /*Example 10*/
     def_strcpy();
+    def_strcpy_source_to_Dest_size();
     copy_data_by_pointer();
     copy_data_by_pointer_struct();
     Perform_Copy_Data_By_Argument();
@@ -877,6 +1060,21 @@ int main() {
     /*Example 20*/
     array_2D();
     array_3D();
-    return 0;
+
+    /*Example 21*/
+    def_I_O_IO();
+
+    /*Example 22*/
+    deleteElements();
+
+    /*Example 23*/
+    addElements_via_realloc();
+
+    /*Example 24*/
+    test_assert();
+
+    /*Example 25*/
+    controhang();
+    hangcontro();
 }
 
