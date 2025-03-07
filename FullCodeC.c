@@ -830,24 +830,29 @@ void array_3D()
 */
 
 
-typedef volatile unsigned int const __I;
-typedef volatile unsigned int __O;
-typedef volatile unsigned int __IO;
+#define __I volatile const  // only read
+#define __O volatile        // only write
+#define __IO volatile       // read and write
 
-// CTRL, STATUS, CMD
-typedef struct{
+
+typedef struct 
+{
     __I uint32_t CTRL;
     __O uint32_t STATUS;
     __IO uint32_t CMD;
-}Peripheral_TypeDef;
+} REG_TypeDef;
 
-Peripheral_TypeDef *Peripheral = (Peripheral_TypeDef *)0x40000000;
-
-void def_I_O_IO()
+#define REG_GPIOA ((REG_TypeDef*) 0X500000)
+#define TRUE 1
+void def_I_O_IO(uint8_t data)
 {
-    volatile uint32_t dummy = Peripheral->CTRL;
-    Peripheral->STATUS = 0;
-    Peripheral->CMD = 0;
+    // Read data from CTRL
+    uint8_t read = REG_GPIOA->CTRL;
+    // Write STATUS
+    REG_GPIOA->STATUS = TRUE;
+    // Read and write CMD
+    read = REG_GPIOA->CMD;
+    REG_GPIOA->CMD = data;
 }
 
 /*
@@ -964,6 +969,119 @@ void hangcontro()
 	p = &b;   // Không hợp lệ
 }
 
+
+/*EXAMPLE 26. Static inline
+    - Gợi ý trình biên dịch chèn trực tiếp nội dung hàm vào nơi gọi thay vì thực hiện một lời gọi hàm thông thường.
+    -> Có thể giúp tăng hiệu suất bằng cách giảm overhead của lời gọi hàm, nhưng có thể làm tăng kích thước mã nếu lạm dụng.
+    -> Nên sử dụng với những hàm nhỏ
+*/
+
+#define ERROR_FLAG (1U << 3)  // Bit thứ 3 là cờ lỗi
+
+volatile uint32_t STATUS_REG = 0x08;  // Giả lập thanh ghi có lỗi (bit 3 = 1)
+
+// Hàm inline kiểm tra bit lỗi trong thanh ghi
+static inline void check_error(void)
+{
+    if (STATUS_REG & ERROR_FLAG)
+    {
+        printf("Error detected!\n");
+    }
+    else
+    {
+        printf("No error.\n");
+    }
+}
+
+/*
+    EXAMPLE 27. define - Macro and Function-Like Macros
+*/
+
+#define PI 3.14 // define - Macro
+#define SQUARE(x) (x * x) //Function-Like Macros
+
+void def_Marco()
+{
+    float R = 5.0;
+    float area = PI * SQUARE(R);
+    printf("Area is: %f", area);
+}
+
+/*
+    EXAMPLE 28. Size of pointer
+    - If your system is 32bit -> size of Pointer = 4bytes
+    - If your system is 64bit -> size of Pointer = 8bytes (theory). But it's depend on Code of Operarion System 
+    (vsCode in Window is 4bytes instead of 8bytes)
+*/
+
+void sizeOfPointer(void) {
+    int    *ptrInt;
+    char   *ptrChar;
+    double *ptrDouble;
+    void   *ptrVoid;
+    
+    printf("Size of int pointer:    %zu bytes\n", sizeof(ptrInt));
+    printf("Size of char pointer:   %zu bytes\n", sizeof(ptrChar));
+    printf("Size of double pointer: %zu bytes\n", sizeof(ptrDouble));
+    printf("Size of void pointer:   %zu bytes\n", sizeof(ptrVoid));
+}
+/*
+    EXAMPLE 28. Size of pointer
+    - Pointer Cast Type (Ép kiểu con trỏ để mã hóa, thay đổi cấu trúc dữ liệu. Trong ví dụ từ 4 bytes thành 1 byte)
+*/
+
+int Pointer_Cast_Type(void) {
+    int a = 0x12345678; // Một số nguyên mẫu
+    int *ptrInt = &a;   // Con trỏ int trỏ tới a
+
+    // Ép kiểu int* thành char* để truy cập từng byte của số nguyên a
+    char *ptrChar = (char *)ptrInt;
+
+    printf("Xem nội dung của 'a' theo từng byte:\n");
+    for (int i = 0; i < sizeof(int); i++) {
+        // Sử dụng unsigned char để in ra giá trị byte dưới dạng hexa
+        printf("Byte %d: 0x%02x\n", i, (char)ptrInt[i]);
+    }
+
+    return 0;
+}
+
+/*
+    EXAMPLE 28. lambda_function
+    - Hàm ẩn, chỉ được cho phép trong GNU, những compiler khác không được sử dụng
+*/
+
+int lambda_function(void) {
+    int factor = 3;
+
+    // Hàm lồng nhau: tương tự như lambda function
+    int lambda(int x) {
+        return x * factor;
+    }
+
+    int result = lambda(10);  // Tính 10 * 3 = 30
+    printf("Kết quả: %d\n", result);
+
+    return 0;
+}
+
+/*
+    EXAMPLE 29. Size of Struct
+    - Normal size of Struct is 13, but the compiler will have padding -> 16 or 24 depand on compiler.
+    -> We should sort the elements in Struct in ascending order of data size.
+*/
+
+typedef struct 
+{
+    char c;      // 1 byte
+    int i;       // 4 byte (thông thường)
+    double d;    // 8 byte (thông thường)
+}SizeofStruct_TypeDef;
+
+void Size_of_Struct(){
+    printf("Size_of_Struct: %d", sizeof(SizeofStruct_TypeDef));
+}
+
 int main() {
     /*Example 1*/
     read_write_data();
@@ -1062,7 +1180,7 @@ int main() {
     array_3D();
 
     /*Example 21*/
-    def_I_O_IO();
+    def_I_O_IO(0x01);
 
     /*Example 22*/
     deleteElements();
@@ -1076,5 +1194,17 @@ int main() {
     /*Example 25*/
     controhang();
     hangcontro();
+
+    /*Example 26*/
+    check_error();
+
+    /*Example 27*/
+    def_Marco();
+
+    /*Example 28*/
+    lambda_function();
+
+    /*Example 29*/
+    Size_of_Struct();
 }
 

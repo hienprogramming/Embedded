@@ -19,7 +19,7 @@ REG_TypeDef fake_register = {0x12345678, 0, 0};  // Giá trị mặc định
 
 // Macro trỏ tới thanh ghi (giả lập)
 #define REG  ((REG_TypeDef *)&fake_register)
-
+// #define REG  ((REG_TypeDef *)0x40001000)
 // Hàm mô phỏng đọc thanh ghi
 void read_registers()
 {
