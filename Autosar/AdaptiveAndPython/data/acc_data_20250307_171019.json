@@ -1,0 +1,51 @@
+[
+    {
+        "Timestamp": "2025-03-07 17:10:12",
+        "Front Speed (m/s)": 27.4,
+        "Our Speed (m/s)": 30.0,
+        "Gap (m)": 18.5,
+        "Calculated Speed (m/s)": 27.4
+    },
+    {
+        "Timestamp": "2025-03-07 17:10:13",
+        "Front Speed (m/s)": 32.8,
+        "Our Speed (m/s)": 27.4,
+        "Gap (m)": 23.9,
+        "Calculated Speed (m/s)": 28.4
+    },
+    {
+        "Timestamp": "2025-03-07 17:10:14",
+        "Front Speed (m/s)": 30.8,
+        "Our Speed (m/s)": 28.4,
+        "Gap (m)": 26.3,
+        "Calculated Speed (m/s)": 29.4
+    },
+    {
+        "Timestamp": "2025-03-07 17:10:15",
+        "Front Speed (m/s)": 31.2,
+        "Our Speed (m/s)": 29.4,
+        "Gap (m)": 28.1,
+        "Calculated Speed (m/s)": 30.0
+    },
+    {
+        "Timestamp": "2025-03-07 17:10:16",
+        "Front Speed (m/s)": 31.4,
+        "Our Speed (m/s)": 30.0,
+        "Gap (m)": 29.5,
+        "Calculated Speed (m/s)": 30.0
+    },
+    {
+        "Timestamp": "2025-03-07 17:10:17",
+        "Front Speed (m/s)": 25.5,
+        "Our Speed (m/s)": 30.0,
+        "Gap (m)": 25.0,
+        "Calculated Speed (m/s)": 30.0
+    },
+    {
+        "Timestamp": "2025-03-07 17:10:18",
+        "Front Speed (m/s)": 29.5,
+        "Our Speed (m/s)": 30.0,
+        "Gap (m)": 24.5,
+        "Calculated Speed (m/s)": 30.0
+    }
+]

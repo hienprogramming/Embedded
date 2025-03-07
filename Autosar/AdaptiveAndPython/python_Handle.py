@@ -5,6 +5,7 @@ import math
 import pandas as pd
 from datetime import datetime
 import os
+import json
 
 def calculate_new_speed(front_speed, our_speed, gap, safe_gap=20.0, dt=1.0, 
                           max_deceleration=3.0, acceleration=1.0, desired_speed=30.0):
@@ -74,32 +75,45 @@ def main():
         time.sleep(1)
 
     # Save data to Excel file
+    # if data_records:
+    #     try:
+    #         df = pd.DataFrame(data_records)
+    #         # Create a 'data' folder if it doesn't exist
+    #         os.makedirs('data', exist_ok=True)
+            
+    #         filename = os.path.join('data', f'acc_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx')
+    #         df.to_excel(filename, index=False)
+    #         print(f"Data saved to {filename}")
+    #     except PermissionError:
+    #         # Try with a different filename if the first attempt fails
+    #         try:
+    #             alt_filename = os.path.join('data', f'acc_data_backup_{datetime.now().strftime("%Y%m%d_%H%M%S%f")}.xlsx')
+    #             df.to_excel(alt_filename, index=False)
+    #             print(f"Data saved to alternative file: {alt_filename}")
+    #         except Exception as e:
+    #             print(f"Failed to save data to Excel: {e}")
+    #             # Fallback to CSV if Excel fails
+    #             csv_filename = os.path.join('data', f'acc_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
+    #             try:
+    #                 df.to_csv(csv_filename, index=False)
+    #                 print(f"Data saved to CSV instead: {csv_filename}")
+    #             except Exception as e:
+    #                 print(f"Failed to save data completely: {e}")
+    #     except Exception as e:
+    #         print(f"Error saving data: {e}")
+
+    # Save data to JSON file
     if data_records:
         try:
-            df = pd.DataFrame(data_records)
             # Create a 'data' folder if it doesn't exist
             os.makedirs('data', exist_ok=True)
             
-            filename = os.path.join('data', f'acc_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx')
-            df.to_excel(filename, index=False)
-            print(f"Data saved to {filename}")
-        except PermissionError:
-            # Try with a different filename if the first attempt fails
-            try:
-                alt_filename = os.path.join('data', f'acc_data_backup_{datetime.now().strftime("%Y%m%d_%H%M%S%f")}.xlsx')
-                df.to_excel(alt_filename, index=False)
-                print(f"Data saved to alternative file: {alt_filename}")
-            except Exception as e:
-                print(f"Failed to save data to Excel: {e}")
-                # Fallback to CSV if Excel fails
-                csv_filename = os.path.join('data', f'acc_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
-                try:
-                    df.to_csv(csv_filename, index=False)
-                    print(f"Data saved to CSV instead: {csv_filename}")
-                except Exception as e:
-                    print(f"Failed to save data completely: {e}")
+            json_filename = os.path.join('data', f'acc_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json')
+            with open(json_filename, 'w') as json_file:
+                json.dump(data_records, json_file, indent=4)
+            print(f"Data saved to JSON file: {json_filename}")
         except Exception as e:
-            print(f"Error saving data: {e}")
+            print(f"Error saving data to JSON: {e}")
 
     s.close()
 
