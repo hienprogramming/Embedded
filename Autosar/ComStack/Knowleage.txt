@@ -1,0 +1,55 @@
+Mô phỏng ComStack AUTOSAR đơn giản
+Đây là một ví dụ mô phỏng tối giản về Ngăn xếp Giao tiếp (ComStack) trong AUTOSAR để minh họa luồng dữ liệu.
+Mã nguồn này không tuân thủ 100% theo chuẩn AUTOSAR và không phải là mã nguồn cho sản phẩm thực tế, mà chỉ dùng cho mục đích học tập.
+
+Cấu trúc thư mục
+Mcal_Can.c/.h: Mô phỏng lớp MCAL (Microcontroller Abstraction Layer), cụ thể là CAN Driver. Lớp này tương tác trực tiếp với phần cứng (mô phỏng bằng cách in ra console).
+
+CanIf.c/.h: Mô phỏng lớp CAN Interface, nằm giữa MCAL và các lớp cao hơn.
+
+PduR.c/.h: Mô phỏng lớp PDU Router, có nhiệm vụ định tuyến các gói tin (PDU) giữa các module.
+
+Com.c/.h: Mô phỏng lớp COM, quản lý việc đóng gói (packing) và mở gói (unpacking) các tín hiệu (signal) vào/ra các PDU.
+
+Rte.h: Mô phỏng một phần của RTE (Runtime Environment), là giao diện để lớp ứng dụng (SW-C) giao tiếp với các lớp cơ sở (BSW).
+
+App_SWC.c/.h: Mô phỏng một Software Component (SW-C) ở lớp ứng dụng, nơi chứa logic nghiệp vụ (ví dụ: đọc cảm biến, điều khiển cơ cấu chấp hành).
+
+main.c: File chính để chạy vòng lặp mô phỏng.
+
+Luồng dữ liệu
+1. Luồng truyền (TX: Từ App xuống Bus)
+App_SWC: Logic ứng dụng muốn gửi đi một giá trị (ví dụ: tốc độ động cơ). Nó gọi hàm Rte_Write_... tương ứng.
+
+Rte: Ánh xạ lời gọi Rte_Write_... tới hàm của module COM.
+
+Com: Nhận giá trị (signal) từ ứng dụng, thực hiện đóng gói (packing) signal này vào đúng vị trí trong một buffer dữ liệu của PDU. Sau đó, yêu cầu PduR gửi PDU này đi qua hàm PduR_ComTransmit().
+
+PduR: Nhận yêu cầu từ Com, xác định PDU này cần được gửi qua giao diện nào (ở đây là CAN), và gọi hàm CanIf_Transmit().
+
+CanIf: Nhận PDU từ PduR, đóng gói nó vào một khung tin CAN (CAN Frame) hoàn chỉnh (thêm CAN ID, DLC) và yêu cầu CAN Driver gửi đi qua hàm Mcal_Can_Write().
+
+Mcal_Can: Nhận khung tin CAN và thực hiện gửi nó lên CAN Bus (mô phỏng bằng cách in ra màn hình).
+
+2. Luồng nhận (RX: Từ Bus lên App)
+Mcal_Can: Mô phỏng việc phần cứng nhận được một khung tin CAN từ Bus. Hàm ngắt nhận (Rx Interrupt) sẽ được kích hoạt và gọi lên lớp trên là CanIf_RxIndication().
+
+CanIf: Nhận dữ liệu thô từ CAN Driver, tách PDU ra và thông báo cho PduR qua hàm PduR_CanIfRxIndication().
+
+PduR: Nhận PDU từ CanIf, xác định PDU này thuộc về module nào ở lớp trên (ở đây là Com) và gọi hàm Com_RxIndication().
+
+Com: Nhận PDU từ PduR, thực hiện mở gói (unpacking) để lấy ra giá trị của signal tương ứng và lưu vào bộ đệm nội bộ.
+
+App_SWC: Trong vòng lặp xử lý của mình, ứng dụng gọi hàm Rte_Read_... để đọc giá trị signal mới nhất mà module COM đã lưu lại.
+
+Rte: Ánh xạ lời gọi Rte_Read_... để lấy dữ liệu từ bộ đệm của module COM.
+
+Biên dịch và chạy
+Bạn có thể dùng trình biên dịch C (như GCC) để biên dịch tất cả các file .c và chạy file thực thi.
+
+gcc main.c App_SWC.c Com.c PduR.c CanIf.c Mcal_Can.c -o comstack_simulation
+./comstack_simulation
+
+
+.\build.bat
+.\build.bat clean

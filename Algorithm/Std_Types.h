@@ -36,7 +36,9 @@ typedef double float64;
 /* Standard Return Type */
 typedef uint8 Std_ReturnType;
 
-#define E_OK 0x00
-#define E_NOT_OK 0x01
+// #define E_OK 0x00
+// #define E_NOT_OK 0x01
+#define E_OK            ((Std_ReturnType)0x00)
+#define E_NOT_OK        ((Std_ReturnType)0x01)
 
 #endif /* STD_TYPES_H */

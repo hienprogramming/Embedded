@@ -86,6 +86,85 @@ void receive_command(const unsigned char *ciphertext, int len, const unsigned ch
     printf("[ECU_Receiver] Decrypted command: %s\n", decryptedtext);
 }
 
+
+/////
+float (int Sensor){
+    return (Sensor / 76.2345);
+}
+uint8_t calculateChecksum(uint8_t* data, uint8_t length) {
+    uint8_t checksum = 0;
+    for (uint8_t i = 0; i < length; i++) {
+        checksum += data[i];  // Simple addition
+    }
+    return ~checksum;  // Optional: Complement the result
+}
+
+
+int function_TestActiveReturn(){
+    float Sensor_Torque; 
+    float Sensor_Engine;
+    float Sensor_Steering;
+    int checkSum;
+
+    if (((Sensor_Torque && Sensor_Engine) | (Sensor_Steering | Sensor_Engine)) != 0){
+        Sensor_Steering = function_ReadTempSensor (Sensor_Torque);  // Sensor will return Temp
+        checkSum = calculateChecksum (Sensor_Torque, sizeof(Sensor_Torque))
+    }
+    else if (((Sensor_Torque != Sensor_Engine) | (Sensor_Steering | Sensor_Engine)) != 0){
+        Sensor_Steering = function_ReadTempSensor (Sensor_Engine);  // Sensor will return Temp
+        checkSum = calculateChecksum (Sensor_Engine, sizeof(Sensor_Engine))
+    }
+    else if (((Sensor_Torque == Sensor_Engine) | (Sensor_Steering | Sensor_Engine)) != 0){
+        Sensor_Steering = function_ReadTempSensor (Sensor_Engine);  // Sensor will return Temp
+        checkSum = calculateChecksum (Sensor_Steering, sizeof(Sensor_Steering))
+    }
+
+    return checkSum;
+}
+
+int NAValue = 65535;
+
+float ReadFromSensor (){
+    return TempSensorRead = Read_SenSor / 27.5;
+}
+
+float funtion_MakeSure_Steering_Active(float Sensor_SteeringCheck)
+{
+    const TempConTrollSafe = 150;
+    if (function_TestActiveReturn() != 0){
+        Sensor_SteeringCheck = NAValue;
+    }
+    else if (function_TestActiveReturn() == 0){
+        Sensor_SteeringCheck = ReadFromSensor ();
+    }
+
+    #if (Sensor_SteeringCheck > TempConTrollSafe) && (Sensor_SteeringCheck < 0)
+    #error "Sensor temperature is error!"
+    #endif
+
+    return Sensor_SteeringCheck;
+}
+
+void sequence1(){
+    funtion_MakeSure_Steering_Active ();
+}
+
+void def_function_ActiveReturn(float sensorcheckActive, float receive){
+    sensorcheckActive = (receive / 255) * 10^3;
+    sensorcheckActive = receive & 0x01;
+}
+
+void SteeringFunctionSequence(){
+    sequence1();
+    sensorActive = funtion_MakeSure_Steering_Active();
+    receiveSen = sensorActive & 0x08;
+    def_function_ActiveReturn(sensorActive, receiveSen);
+}
+
+
+
+/////
+
 int main() {
     unsigned char shared_key[BLOCK_SIZE];
     generate_aes_key(shared_key);
@@ -96,3 +175,6 @@ int main() {
 
     return 0;
 }
+
+
+
