@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define MAX_ERRORS        10
 #define MAX_SUBSCRIBERS   10
 #define MAX_ERROR_MESSAGE 10
@@ -20,15 +21,15 @@ typedef enum {
 /* Cấu trúc chứa subscriber cho mỗi lỗi */
 typedef struct {
     const char *name;
-    DiagNotifyFunc callback;
+    DiagNotifyFunc  callback;
 } DiagSubscriber_t;
 
 /* Database cho từng lỗi */
 typedef struct {
     DiagErrorId_t errorId;
     const char *errorName;
-    uint8_t subscriberCount;
-    DiagSubscriber_t subscribers[MAX_SUBSCRIBERS];
+    uint8_t  subscriberCount;
+    DiagSubscriber_t  subscribers[MAX_SUBSCRIBERS];
 } DiagEventDB_t;
 
 /*-------------------------------------------
@@ -36,6 +37,7 @@ typedef struct {
  *-------------------------------------------*/
 static DiagEventDB_t diagDB[MAX_ERRORS];
 static uint8_t diagErrorCount = 0;
+
 
 /*-------------------------------------------
  * Tạo database cho từng loại lỗi
@@ -50,10 +52,12 @@ bool Diag_RegisterError(DiagErrorId_t id, const char *name)
     return true;
 }
 
+
 /*-------------------------------------------
  * Đăng ký component muốn nhận thông báo lỗi
  *-------------------------------------------*/
-bool Diag_RegisterSubscriber(DiagErrorId_t id, const char *compName, DiagNotifyFunc cb)
+
+ bool Diag_RegisterSubscriber(DiagErrorId_t id, const char *compName, DiagNotifyFunc cb)
 {
     for (uint8_t i = 0; i < diagErrorCount; i++) {
         if (diagDB[i].errorId == id) {
