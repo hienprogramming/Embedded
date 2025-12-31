@@ -1,6 +1,9 @@
-# Ignore zip files
 *.zip
-
-# Ignore json files
 *.json
-
+*.log
+*.map
+*.elf
+*.hex
+*.bin
+build/
+out/
